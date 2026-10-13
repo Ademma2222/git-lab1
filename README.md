@@ -5,13 +5,13 @@
 ## Схема
 
 ```
-ноутбук (браузер) -> WSL2 (SSH-туннель) -> VM в KVM -> Docker Compose -> frontend (nginx) -> backend (Flask)
+ноутбук -> WSL2 (SSH) -> VM в KVM -> Docker Compose -> frontend (nginx) -> backend (Flask)
 ```
 
 Адреса:
 
 - локально: http://localhost:8080
-- с ноутбука через VM: http://localhost:8081
+- с ноутбука через VM: http://localhost:8082
 
 ## Запуск локально
 
@@ -44,7 +44,7 @@ virsh -c qemu:///system domifaddr lab-vm
 Проброс порта на ноутбук:
 
 ```
-ssh -N -L 0.0.0.0:8081:localhost:8080 ubuntu@<IP-VM>
+ssh -N -L 0.0.0.0:8082:localhost:8080 ubuntu@<IP-VM>
 ```
 
 ## Ansible
@@ -64,7 +64,7 @@ Playbook устанавливает Docker, копирует `backend`, `fronten
 
 ```
 curl http://localhost:8080/api/hello
-curl http://localhost:8081/api/hello
+curl http://localhost:8082/api/hello
 docker compose ps
 ```
 
