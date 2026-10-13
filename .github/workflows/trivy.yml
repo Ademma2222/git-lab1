@@ -1,0 +1,25 @@
+name: Trivy scan
+on:
+  push:
+  pull_request:
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images from compose
+        run: docker compose build
+      - name: Trivy scan backend
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: lab-backend
+          format: table
+          exit-code: "0"
+          severity: CRITICAL,HIGH
+      - name: Trivy scan frontend
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: lab-frontend
+          format: table
+          exit-code: "0"
+          severity: CRITICAL,HIGH

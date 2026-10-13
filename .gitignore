@@ -1,2 +1,8 @@
 *.log
 .env*.tmp
+
+*.img
+*.iso
+user-data
+id_ed25519*
+*.retry
