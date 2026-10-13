@@ -1,0 +1,60 @@
+- hosts: lab
+  become: true
+  tasks:
+    - name: Установить зависимости
+      ansible.builtin.apt:
+        name: [docker.io, docker-compose-v2, docker-buildx, rsync]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Запустить Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Добавить ubuntu в группу docker
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    - name: Создать каталог приложения
+      ansible.builtin.file:
+        path: /opt/lab
+        state: directory
+        owner: ubuntu
+        mode: "0755"
+
+    - name: Скопировать файлы приложения
+      ansible.posix.synchronize:
+        src: "{{ playbook_dir }}/../{{ item }}"
+        dest: /opt/lab/
+        archive: false
+        recursive: true
+        checksum: true
+        rsync_opts:
+          - "--no-perms"
+          - "--no-owner"
+          - "--no-group"
+      loop:
+        - backend
+        - frontend
+        - compose.yaml
+      register: copy_result
+
+    - name: Запустить compose
+      community.docker.docker_compose_v2:
+        project_src: /opt/lab
+        build: "{{ 'always' if copy_result.changed else 'policy' }}"
+        state: present
+
+    - name: Проверить, что приложение отвечает
+      ansible.builtin.uri:
+        url: http://localhost:8080/api/hello
+        status_code: 200
+      register: r
+      retries: 10
+      delay: 3
+      until: r.status == 200
